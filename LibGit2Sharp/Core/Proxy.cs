@@ -144,16 +144,16 @@ namespace LibGit2Sharp.Core
             }
         }
 
-        public static string git_branch_remote_name(RepositorySafeHandle repo, ReferenceSafeHandle branch)
+        public static string git_branch_remote_name(RepositorySafeHandle repo, string canonical_branch_name)
         {
             using (ThreadAffinity())
             {
-                int bufSize = NativeMethods.git_branch_remote_name(null, UIntPtr.Zero, repo, branch);
+                int bufSize = NativeMethods.git_branch_remote_name(null, UIntPtr.Zero, repo, canonical_branch_name);
                 Ensure.Int32Result(bufSize);
 
                 var buffer = new byte[bufSize];
 
-                int res = NativeMethods.git_branch_remote_name(buffer, (UIntPtr)buffer.Length, repo, branch);
+                int res = NativeMethods.git_branch_remote_name(buffer, (UIntPtr)buffer.Length, repo, canonical_branch_name);
                 Ensure.Int32Result(res);
 
                 return Utf8Marshaler.Utf8FromBuffer(buffer) ?? string.Empty;

@@ -111,6 +111,13 @@ namespace LibGit2Sharp.Core
         ///   Ignore file mode changes.
         /// </summary>
         GIT_DIFF_IGNORE_FILEMODE = (1 << 17),
+
+        /// <summary>
+        ///  Even with GIT_DIFF_INCLUDE_IGNORED, an entire ignored directory
+        ///  will be marked with only a single entry in the diff list; this flag
+        ///  adds all files under the directory as IGNORED entries, too.
+        /// </summary>
+        GIT_DIFF_RECURSE_IGNORED_DIRS = (1 << 10),
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -193,12 +200,9 @@ namespace LibGit2Sharp.Core
     [Flags]
     internal enum GitDiffFileFlags
     {
-        GIT_DIFF_FILE_VALID_OID = (1 << 0),
-        GIT_DIFF_FILE_FREE_PATH = (1 << 1),
-        GIT_DIFF_FILE_BINARY = (1 << 2),
-        GIT_DIFF_FILE_NOT_BINARY = (1 << 3),
-        GIT_DIFF_FILE_FREE_DATA = (1 << 4),
-        GIT_DIFF_FILE_UNMAP_DATA = (1 << 5),
+        GIT_DIFF_FLAG_BINARY = (1 << 0),
+        GIT_DIFF_FLAG_NOT_BINARY = (1 << 1),
+        GIT_DIFF_FLAG_VALID_OID = (1 << 2),
     }
 
     [StructLayout(LayoutKind.Sequential)]
@@ -218,7 +222,7 @@ namespace LibGit2Sharp.Core
         public GitDiffFile NewFile;
         public ChangeKind Status;
         public uint Similarity;
-        public int Binary;
+        public uint Flags;
     }
 
     [StructLayout(LayoutKind.Sequential)]

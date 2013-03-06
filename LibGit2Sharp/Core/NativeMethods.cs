@@ -146,7 +146,7 @@ namespace LibGit2Sharp.Core
             byte[] remote_name_out,
             UIntPtr buffer_size,
             RepositorySafeHandle repo,
-            ReferenceSafeHandle branch);
+            [MarshalAs(UnmanagedType.CustomMarshaler, MarshalTypeRef = typeof(Utf8Marshaler))] string canonical_branch_name);
 
         [DllImport(libgit2)]
         internal static extern int git_branch_tracking_name(
@@ -986,7 +986,7 @@ namespace LibGit2Sharp.Core
         [DllImport(libgit2)]
         internal static extern void git_threads_shutdown();
 
-        internal delegate void git_transfer_progress_callback(ref GitTransferProgress stats, IntPtr payload);
+        internal delegate int git_transfer_progress_callback(ref GitTransferProgress stats, IntPtr payload);
 
         [DllImport(libgit2)]
         internal static extern uint git_tree_entry_filemode(SafeHandle entry);
