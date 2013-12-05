@@ -1032,6 +1032,21 @@ namespace LibGit2Sharp
             }
         }
 
+        /// <summary>
+        /// Merges the HEAD onto the given commit.
+        /// </summary>
+        public void MergeOnto(
+            Commit commit)
+        {
+            GitMergeOpts opts = new GitMergeOpts()
+            {
+                Version = 1,
+                MergeTreeOpts = { Version = 1, Metric = UIntPtr.Zero },
+                CheckoutOpts = { version = 1 }
+            };
+            Proxy.git_merge(Handle, opts, commit.Id.Oid);
+        }
+
         internal StringComparer PathComparer
         {
             get { return pathCase.Value.Comparer; }
