@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -70,6 +71,35 @@ namespace LibGit2Sharp.Tests
                 Assert.Equal(treeEntryChanges, changes.Added.Single());
 
                 Assert.Equal(Mode.Nonexistent, treeEntryChanges.OldMode);
+            }
+        }
+
+        [Fact]
+        public void CanReportABinaryChange()
+        {
+            var content = new byte[] { 0x1, 0x0, 0x2, 0x0 };
+            using (var repo = new Repository(StandardTestRepoPath))
+            {
+                const string filename = "binfile.foo";
+                var filepath = Path.Combine(repo.Info.WorkingDirectory, filename);
+
+                var binfile = File.Create(filepath);
+                for (int i=0; i<1000; i++)
+                    binfile.Write(content, 0, 4);
+                binfile.Close();
+
+                repo.Index.Stage(filename);
+                var me = new Signature("me", "me@example.com", DateTimeOffset.Now);
+                repo.Commit("Add binary file", me, me);
+
+                binfile = File.Open(filepath, FileMode.Append);
+                for (int i = 0; i < 1000; i++)
+                    binfile.Write(content, 0, 4);
+                binfile.Close();
+
+                var patch = repo.Diff.Compare<Patch>(repo.Head.Tip.Tree, DiffTargets.WorkingDirectory, new [] {filename});
+                Trace.Write(patch[filename].Patch);
+                Assert.True(patch[filename].IsBinaryComparison);
             }
         }
 
