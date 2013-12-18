@@ -1838,11 +1838,11 @@ namespace LibGit2Sharp.Core
             return RepositoryStateChecker(repo, NativeMethods.git_repository_is_shallow);
         }
 
-        public static void git_repository_merge_cleanup(RepositorySafeHandle repo)
+        public static void git_repository_state_cleanup(RepositorySafeHandle repo)
         {
             using (ThreadAffinity())
             {
-                int res = NativeMethods.git_repository_merge_cleanup(repo);
+                int res = NativeMethods.git_repository_state_cleanup(repo);
                 Ensure.ZeroResult(res);
             }
         }
@@ -2829,7 +2829,7 @@ namespace LibGit2Sharp.Core
         /// <returns></returns>
         internal static int ConvertResultToCancelFlag(bool result)
         {
-            return result ? 0 : -1;
+            return result ? 0 : (int)GitErrorCode.User;
         }
     }
 }
