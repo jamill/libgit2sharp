@@ -200,7 +200,7 @@ namespace LibGit2Sharp.Core
     }
 
     [Flags]
-    internal enum GitDiffFileFlags
+    internal enum GitDiffFlags
     {
         GIT_DIFF_FLAG_BINARY = (1 << 0),
         GIT_DIFF_FLAG_NOT_BINARY = (1 << 1),
@@ -213,7 +213,7 @@ namespace LibGit2Sharp.Core
         public GitOid Oid;
         public IntPtr Path;
         public Int64 Size;
-        public GitDiffFileFlags Flags;
+        [MarshalAs(UnmanagedType.U4)] public GitDiffFlags Flags;
         public ushort Mode;
     }
 
@@ -221,7 +221,7 @@ namespace LibGit2Sharp.Core
     internal class GitDiffDelta
     {
         public ChangeKind Status;
-        public uint Flags;
+        [MarshalAs(UnmanagedType.U4)] public GitDiffFlags Flags;
         public ushort Similarity;
         public ushort NumberOfFiles;
         public GitDiffFile OldFile;
@@ -237,7 +237,7 @@ namespace LibGit2Sharp.Core
         public int NewLines;
         public UIntPtr HeaderLen;
 
-        [MarshalAsAttribute(UnmanagedType.ByValArray, SizeConst = 128)]
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 128)]
         public byte[] Header;
     }
 
