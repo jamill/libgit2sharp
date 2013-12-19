@@ -74,32 +74,69 @@ namespace LibGit2Sharp.Tests
             }
         }
 
+        static void CreateBinaryFile(string path)
+        {
+            var content = new byte[] { 0x1, 0x0, 0x2, 0x0 };
+
+            using (var binfile = File.Create(path))
+                for (int i = 0; i < 1000; i++)
+                    binfile.Write(content, 0, content.Length);
+        }
+
         [Fact]
         public void CanReportABinaryChange()
         {
-            var content = new byte[] { 0x1, 0x0, 0x2, 0x0 };
-            using (var repo = new Repository(StandardTestRepoPath))
+            using (var repo = new Repository(CloneStandardTestRepo()))
             {
                 const string filename = "binfile.foo";
                 var filepath = Path.Combine(repo.Info.WorkingDirectory, filename);
 
-                var binfile = File.Create(filepath);
-                for (int i=0; i<1000; i++)
-                    binfile.Write(content, 0, 4);
-                binfile.Close();
+                CreateBinaryFile(filepath);
+
+                repo.Index.Stage(filename);
+                var commit = repo.Commit("Add binary file", new Signature("me", "me@example.com", DateTimeOffset.Now));
+
+                File.AppendAllText(filepath, "abcdef");
+
+                var patch = repo.Diff.Compare<Patch>(commit.Tree, DiffTargets.WorkingDirectory, new[] { filename });
+                Trace.Write(patch[filename].Patch);
+                Assert.True(patch[filename].IsBinaryComparison);
+
+                repo.Index.Stage(filename);
+                var commit2 = repo.Commit("Update binary file", new Signature("me", "me@example.com", DateTimeOffset.Now));
+
+                var patch2 = repo.Diff.Compare<Patch>(commit.Tree, commit2.Tree, new[] { filename });
+                Trace.Write(patch2[filename].Patch);
+                Assert.True(patch2[filename].IsBinaryComparison);
+            }
+        }
+
+        [Fact]
+        public void CanReportABinaryDeletion()
+        {
+            using (var repo = new Repository(CloneStandardTestRepo()))
+            {
+                const string filename = "binfile.foo";
+                var filepath = Path.Combine(repo.Info.WorkingDirectory, filename);
+
+                CreateBinaryFile(filepath);
 
                 repo.Index.Stage(filename);
                 var me = new Signature("me", "me@example.com", DateTimeOffset.Now);
-                repo.Commit("Add binary file", me, me);
+                var commit = repo.Commit("Add binary file", me);
 
-                binfile = File.Open(filepath, FileMode.Append);
-                for (int i = 0; i < 1000; i++)
-                    binfile.Write(content, 0, 4);
-                binfile.Close();
+                File.Delete(filepath);
 
-                var patch = repo.Diff.Compare<Patch>(repo.Head.Tip.Tree, DiffTargets.WorkingDirectory, new [] {filename});
+                var patch = repo.Diff.Compare<Patch>(commit.Tree, DiffTargets.WorkingDirectory, new [] {filename});
                 Trace.Write(patch[filename].Patch);
                 Assert.True(patch[filename].IsBinaryComparison);
+
+                repo.Index.Remove(filename);
+                var commit2 = repo.Commit("Delete binary file", me);
+
+                var patch2 = repo.Diff.Compare<Patch>(commit.Tree, commit2.Tree, new[] { filename });
+                Trace.Write(patch2[filename].Patch);
+                Assert.True(patch2[filename].IsBinaryComparison);
             }
         }
 
