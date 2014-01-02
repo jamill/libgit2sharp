@@ -213,17 +213,17 @@ namespace LibGit2Sharp.Core
         public GitOid Oid;
         public IntPtr Path;
         public Int64 Size;
-        [MarshalAs(UnmanagedType.U4)] public GitDiffFlags Flags;
-        public ushort Mode;
+        public UInt32 Flags; // really GitDiffFlags
+        public UInt16 Mode;
     }
 
     [StructLayout(LayoutKind.Sequential)]
     internal class GitDiffDelta
     {
         public ChangeKind Status;
-        [MarshalAs(UnmanagedType.U4)] public GitDiffFlags Flags;
-        public ushort Similarity;
-        public ushort NumberOfFiles;
+        public UInt32 Flags; // really GitDiffFlags
+        public UInt16 Similarity;
+        public UInt16 NumberOfFiles;
         public GitDiffFile OldFile;
         public GitDiffFile NewFile;
     }

@@ -7,7 +7,7 @@ namespace LibGit2Sharp.Core
         public static bool IsBinary(this GitDiffDelta delta)
         {
             //TODO Fix the interop issue on amd64 and use GitDiffDelta.Binary
-            return delta.Flags.HasFlag(GitDiffFlags.GIT_DIFF_FLAG_BINARY);
+            return ((GitDiffFlags)(delta.Flags)).HasFlag(GitDiffFlags.GIT_DIFF_FLAG_BINARY);
         }
     }
 }

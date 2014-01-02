@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -79,12 +78,16 @@ namespace LibGit2Sharp.Tests
             var content = new byte[] { 0x1, 0x0, 0x2, 0x0 };
 
             using (var binfile = File.Create(path))
+            {
                 for (int i = 0; i < 1000; i++)
+                {
                     binfile.Write(content, 0, content.Length);
+                }
+            }
         }
 
         [Fact]
-        public void CanReportABinaryChange()
+        public void CanDetectABinaryChange()
         {
             using (var repo = new Repository(CloneStandardTestRepo()))
             {
@@ -99,20 +102,18 @@ namespace LibGit2Sharp.Tests
                 File.AppendAllText(filepath, "abcdef");
 
                 var patch = repo.Diff.Compare<Patch>(commit.Tree, DiffTargets.WorkingDirectory, new[] { filename });
-                Trace.Write(patch[filename].Patch);
                 Assert.True(patch[filename].IsBinaryComparison);
 
                 repo.Index.Stage(filename);
                 var commit2 = repo.Commit("Update binary file", new Signature("me", "me@example.com", DateTimeOffset.Now));
 
                 var patch2 = repo.Diff.Compare<Patch>(commit.Tree, commit2.Tree, new[] { filename });
-                Trace.Write(patch2[filename].Patch);
                 Assert.True(patch2[filename].IsBinaryComparison);
             }
         }
 
         [Fact]
-        public void CanReportABinaryDeletion()
+        public void CanDetectABinaryDeletion()
         {
             using (var repo = new Repository(CloneStandardTestRepo()))
             {
@@ -128,14 +129,12 @@ namespace LibGit2Sharp.Tests
                 File.Delete(filepath);
 
                 var patch = repo.Diff.Compare<Patch>(commit.Tree, DiffTargets.WorkingDirectory, new [] {filename});
-                Trace.Write(patch[filename].Patch);
                 Assert.True(patch[filename].IsBinaryComparison);
 
                 repo.Index.Remove(filename);
                 var commit2 = repo.Commit("Delete binary file", me);
 
                 var patch2 = repo.Diff.Compare<Patch>(commit.Tree, commit2.Tree, new[] { filename });
-                Trace.Write(patch2[filename].Patch);
                 Assert.True(patch2[filename].IsBinaryComparison);
             }
         }
