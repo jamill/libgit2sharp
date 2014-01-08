@@ -1,26 +1,70 @@
-﻿using LibGit2Sharp.Core;
-using LibGit2Sharp.Core.Handles;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace LibGit2Sharp
 {
+    /// <summary>
+    /// Class to report the result of a merge.
+    /// </summary>
     public class MergeResult
     {
-        protected MergeResult(){}
-        internal MergeResult(GitMergeResultHandle handle)
-        {
-            IsUpToDate = Proxy.git_merge_result_is_uptodate(handle);
-            IsFastForward = Proxy.git_merge_result_is_fastforward(handle);
+        /// <summary>
+        /// Needed for mocking purposes.
+        /// </summary>
+        protected MergeResult()
+        { }
 
-            if (IsFastForward)
-            {
-                FastForwardOid = Proxy.git_merge_result_fastforward_oid(handle);
-            }
+        internal MergeResult(MergeStatus status, Commit commit = null)
+        {
+            this.Status = status;
+            this.Commit = commit;
         }
 
-        public virtual bool IsUpToDate { get; private set; }
+        /// <summary>
+        /// The status of the merge.
+        /// </summary>
+        public virtual MergeStatus Status
+        {
+            get;
+            private set;
+        }
 
-        public virtual bool IsFastForward { get; private set; }
+        /// <summary>
+        /// The resulting commit of the merge. For fast-forward merges, this is the
+        /// commit that merge was fast forwared to.
+        /// </summary>
+        public virtual Commit Commit
+        {
+            get;
+            private set;
+        }
+    }
 
-        internal GitOid FastForwardOid { get; private set; }
+    /// <summary>
+    /// The status of what happened as a result of a merge.
+    /// </summary>
+    public enum MergeStatus
+    {
+        /// <summary>
+        /// Merge was up-to-date.
+        /// </summary>
+        UpToDate,
+
+        /// <summary>
+        /// Fast-forward merge.
+        /// </summary>
+        FastForward,
+
+        /// <summary>
+        /// Normal merge.
+        /// </summary>
+        Normal,
+
+        /// <summary>
+        /// Merge resulted in conflicts.
+        /// </summary>
+        Conflicts,
     }
 }

@@ -196,6 +196,7 @@ namespace LibGit2Sharp
         /// <summary>
         /// Merges the given commit into HEAD.
         /// </summary>
+        /// <param name="commit">The commit to use as a reference for the changes that should be merged into HEAD.</param>
         MergeResult Merge(Commit commit);
 
         /// <summary>

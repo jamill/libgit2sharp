@@ -108,13 +108,11 @@ namespace LibGit2Sharp.Tests
 
                 MergeResult mergeResult = repo.Merge(repo.Branches["FirstBranch"].Tip);
 
-                Assert.False(mergeResult.IsUpToDate);
-                Assert.False(mergeResult.IsFastForward);
+                Assert.Equal(MergeStatus.Normal, mergeResult.Status);
 
-                var mergeCommit = repo.Commit("Merge First+Second", Constants.Signature, Constants.Signature);
-
-                Assert.Equal(mergeCommit.Tree.Count, originalTreeCount + 3);    // Expecting original tree count plussed by the 3 added files.
-                Assert.Equal(mergeCommit.Parents.Count(), 2);   // Merge commit should have 2 parents
+                Assert.Equal(repo.Head.Tip, mergeResult.Commit);
+                Assert.Equal(mergeResult.Commit.Tree.Count, originalTreeCount + 3);    // Expecting original tree count plussed by the 3 added files.
+                Assert.Equal(mergeResult.Commit.Parents.Count(), 2);   // Merge commit should have 2 parents
             }
         }
 
@@ -139,8 +137,7 @@ namespace LibGit2Sharp.Tests
 
                 MergeResult mergeResult = repo.Merge(repo.Branches["FirstBranch"].Tip);
 
-                Assert.True(mergeResult.IsUpToDate);
-                Assert.False(mergeResult.IsFastForward);
+                Assert.Equal(MergeStatus.UpToDate, mergeResult.Status);
             }
         }
 
@@ -153,6 +150,12 @@ namespace LibGit2Sharp.Tests
             string path = CloneStandardTestRepo();
             using (var repo = new Repository(path))
             {
+                // Reset the index and the working tree.
+                repo.Reset(ResetMode.Hard);
+
+                // Clean the working directory.
+                repo.RemoveUntrackedFiles();
+
                 var firstBranch = repo.CreateBranch("FirstBranch");
                 firstBranch.Checkout();
                 var originalTreeCount = firstBranch.Tip.Tree.Count;
@@ -168,12 +171,10 @@ namespace LibGit2Sharp.Tests
 
                 MergeResult mergeResult = repo.Merge(repo.Branches["FirstBranch"].Tip);
 
-                Assert.False(mergeResult.IsUpToDate);
-                Assert.True(mergeResult.IsFastForward);
-                
-                var mergeCommit = repo.Commit("Merge First+Second", Constants.Signature, Constants.Signature);
-
-                Assert.Equal(mergeCommit.Tree.Count, originalTreeCount + 2);    // Expecting original tree count plussed by the 3 added files.
+                Assert.Equal(MergeStatus.FastForward, mergeResult.Status);
+                Assert.Equal(repo.Branches["FirstBranch"].Tip, mergeResult.Commit);
+                Assert.Equal(repo.Branches["FirstBranch"].Tip, repo.Head.Tip);
+                Assert.Equal(0, repo.Index.RetrieveStatus().Count());
             }
         }
 
@@ -206,8 +207,7 @@ namespace LibGit2Sharp.Tests
 
                 MergeResult mergeResult = repo.Merge(repo.Branches["FirstBranch"].Tip);
 
-                Assert.False(mergeResult.IsUpToDate);
-                Assert.False(mergeResult.IsFastForward);
+                Assert.Equal(MergeStatus.Conflicts, mergeResult.Status);
 
                 Assert.Equal(repo.Index.Conflicts.Count(), 1);
 
@@ -247,8 +247,7 @@ namespace LibGit2Sharp.Tests
 
                 MergeResult mergeResult = repo.Merge(repo.Branches["FirstBranch"].Tip);
 
-                Assert.False(mergeResult.IsUpToDate);
-                Assert.False(mergeResult.IsFastForward);
+                Assert.Equal(MergeStatus.Conflicts, mergeResult.Status);
 
                 Assert.Equal(repo.Index.Conflicts.Count(), 1);
 

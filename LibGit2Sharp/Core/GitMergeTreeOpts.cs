@@ -4,12 +4,20 @@ using System.Runtime.InteropServices;
 namespace LibGit2Sharp.Core
 {
     [Flags]
-    internal enum MergeTreeFlags
+    internal enum GitMergeTreeFlags
     {
+        /// <summary>
+        /// No options.
+        /// </summary>
+        GIT_MERGE_TREE_NORMAL = 0,
+
+        /// <summary>
+        /// GIT_MERGE_TREE_FIND_RENAMES in libgit2
+        /// </summary>
 	    GIT_MERGE_TREE_FIND_RENAMES = (1 << 0),
     }
 
-    internal enum MergeAutomergeFlags
+    internal enum GitMergeAutomergeFlags
     {
 	    GIT_MERGE_AUTOMERGE_NORMAL = 0,
 	    GIT_MERGE_AUTOMERGE_NONE = 1,
@@ -22,12 +30,28 @@ namespace LibGit2Sharp.Core
     {
         public uint Version;
 
-        public MergeTreeFlags MergeTreeFlags;
+        public GitMergeTreeFlags MergeTreeFlags;
+
+        /// <summary>
+        /// Similarity to consider a file renamed.
+        /// </summary>
         public uint RenameThreshold;
+
+        /// <summary>
+        /// Maximum similarity sources to examine (overrides
+        /// 'merge.renameLimit' config (default 200)
+        /// </summary>
         public uint TargetLimit;
 
-        public UIntPtr Metric;
+        /// <summary>
+        /// Pluggable similarityMetric; pass IntPtr.Zero
+        /// to use internal metric.
+        /// </summary>
+        public IntPtr SimilarityMetric;
 
-        public MergeAutomergeFlags MergeAutomergeFlags;
+        /// <summary>
+        /// Flags for automerging content.
+        /// </summary>
+        public GitMergeAutomergeFlags MergeAutomergeFlags;
     }
 }
