@@ -830,32 +830,14 @@ namespace LibGit2Sharp
             IList<string> paths,
             CheckoutOptions opts)
         {
-            CheckoutCallbacks checkoutCallbacks = CheckoutCallbacks.GenerateCheckoutCallbacks(opts.OnCheckoutProgress, opts.OnCheckoutNotify);
+            CheckoutStrategy checkoutStrategy = opts.CheckoutModifiers.HasFlag(CheckoutModifiers.Force) ?
+                CheckoutStrategy.GIT_CHECKOUT_FORCE :
+                CheckoutStrategy.GIT_CHECKOUT_SAFE;
 
-            GitStrArrayIn strArray = (paths != null && paths.Count > 0) ? GitStrArrayIn.BuildFrom(ToFilePaths(paths)) : null;
-
-            var options = new GitCheckoutOpts
+            using(GitCheckoutOptsWrapper checkoutOptionsWrapper = new GitCheckoutOptsWrapper(opts, checkoutStrategy, ToFilePaths(paths)))
             {
-                version = 1,
-                checkout_strategy = CheckoutStrategy.GIT_CHECKOUT_SAFE,
-                progress_cb = checkoutCallbacks.CheckoutProgressCallback,
-                notify_cb = checkoutCallbacks.CheckoutNotifyCallback,
-                notify_flags = opts.CheckoutNotifyFlags,
-                paths = strArray
-            };
-
-            try
-            {
-                if (opts.CheckoutModifiers.HasFlag(CheckoutModifiers.Force))
-                {
-                    options.checkout_strategy = CheckoutStrategy.GIT_CHECKOUT_FORCE;
-                }
-
+                var options = checkoutOptionsWrapper.Options;
                 Proxy.git_checkout_tree(Handle, tree.Id, ref options);
-            }
-            finally
-            {
-                options.Dispose();
             }
         }
 
@@ -1063,15 +1045,8 @@ namespace LibGit2Sharp
                 checkout_strategy = CheckoutStrategy.GIT_CHECKOUT_REMOVE_UNTRACKED
                                      | CheckoutStrategy.GIT_CHECKOUT_ALLOW_CONFLICTS,
             };
-
-            try
-            {
-                Proxy.git_checkout_index(Handle, new NullGitObjectSafeHandle(), ref options);
-            }
-            finally
-            {
-                options.Dispose();
-            }
+            
+            Proxy.git_checkout_index(Handle, new NullGitObjectSafeHandle(), ref options);
         }
 
         private void CleanupDisposableDependencies()

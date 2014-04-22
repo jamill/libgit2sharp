@@ -27,5 +27,15 @@ namespace LibGit2Sharp
         /// The Flags specifying what notifications are reported.
         /// </summary>
         public CheckoutNotifyFlags CheckoutNotifyFlags { get; set; }
+
+        /// <summary>
+        /// Generate a <see cref="CheckoutCallbacks"/> object with the delegates
+        /// hooked up to the native callbacks./>
+        /// </summary>
+        /// <returns></returns>
+        internal CheckoutCallbacks GenerateCallbacks()
+        {
+            return CheckoutCallbacks.GenerateCheckoutCallbacks(OnCheckoutProgress, OnCheckoutNotify);
+        }
     }
 }
