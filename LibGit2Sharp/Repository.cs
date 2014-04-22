@@ -549,7 +549,7 @@ namespace LibGit2Sharp
         {
             options = options ?? new CloneOptions();
 
-            CheckoutCallbacks checkoutCallbacks = CheckoutCallbacks.GenerateCheckoutCallbacks(
+            CheckoutCallbacks checkoutCallbacks = CheckoutCallbacks.From(
                 options.OnCheckoutProgress, null);
 
             var callbacks = new RemoteCallbacks(null, options.OnTransferProgress, null,

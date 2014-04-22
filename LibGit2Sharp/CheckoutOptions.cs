@@ -35,7 +35,7 @@ namespace LibGit2Sharp
         /// <returns></returns>
         internal CheckoutCallbacks GenerateCallbacks()
         {
-            return CheckoutCallbacks.GenerateCheckoutCallbacks(OnCheckoutProgress, OnCheckoutNotify);
+            return CheckoutCallbacks.From(OnCheckoutProgress, OnCheckoutNotify);
         }
     }
 }
