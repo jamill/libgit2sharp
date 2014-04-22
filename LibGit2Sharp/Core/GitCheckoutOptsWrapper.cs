@@ -30,7 +30,7 @@ namespace LibGit2Sharp.Core
             Options = new GitCheckoutOpts
             {
                 version = 1,
-                checkout_strategy = checkoutStrategy,
+                checkout_strategy = checkoutStrategy | options.CheckoutConflictStrategyFlags,
                 progress_cb = Callbacks.CheckoutProgressCallback,
                 notify_cb = Callbacks.CheckoutNotifyCallback,
                 notify_flags = options.CheckoutNotifyFlags,

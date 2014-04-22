@@ -549,36 +549,38 @@ namespace LibGit2Sharp
         {
             options = options ?? new CloneOptions();
 
-            CheckoutCallbacks checkoutCallbacks = CheckoutCallbacks.From(
-                options.OnCheckoutProgress, null);
+            CheckoutStrategy checkoutStrategy =
+                options.Checkout ? CheckoutStrategy.GIT_CHECKOUT_SAFE_CREATE :
+                                   CheckoutStrategy.GIT_CHECKOUT_NONE;
 
-            var callbacks = new RemoteCallbacks(null, options.OnTransferProgress, null,
-                options.Credentials);
-            GitRemoteCallbacks gitCallbacks = callbacks.GenerateCallbacks();
-
-            var cloneOpts = new GitCloneOptions
+            CheckoutOptions checkoutOptions = new CheckoutOptions()
             {
-                Version = 1,
-                Bare = options.IsBare ? 1 : 0,
-                CheckoutOpts =
-                {
-                    version = 1,
-                    progress_cb =
-                                checkoutCallbacks.CheckoutProgressCallback,
-                    checkout_strategy = options.Checkout
-                                            ? CheckoutStrategy.GIT_CHECKOUT_SAFE_CREATE
-                                            : CheckoutStrategy.GIT_CHECKOUT_NONE
-                },
-                RemoteCallbacks = gitCallbacks,
+                OnCheckoutProgress = options.OnCheckoutProgress,
             };
 
-            FilePath repoPath;
-            using (RepositorySafeHandle repo = Proxy.git_clone(sourceUrl, workdirPath, ref cloneOpts))
+            using (GitCheckoutOptsWrapper checkoutOptionsWrapper = new GitCheckoutOptsWrapper(checkoutOptions, checkoutStrategy))
             {
-                repoPath = Proxy.git_repository_path(repo);
-            }
+                var gitCheckoutOptions = checkoutOptionsWrapper.Options;
 
-            return repoPath.Native;
+                var remoteCallbacks = new RemoteCallbacks(null, options.OnTransferProgress, null, options.Credentials);
+                var gitRemoteCallbacks = remoteCallbacks.GenerateCallbacks();
+
+                var cloneOpts = new GitCloneOptions
+                {
+                    Version = 1,
+                    Bare = options.IsBare ? 1 : 0,
+                    CheckoutOpts = gitCheckoutOptions,
+                    RemoteCallbacks = gitRemoteCallbacks,
+                };
+
+                FilePath repoPath;
+                using (RepositorySafeHandle repo = Proxy.git_clone(sourceUrl, workdirPath, ref cloneOpts))
+                {
+                    repoPath = Proxy.git_repository_path(repo);
+                }
+
+                return repoPath.Native;
+            }
         }
 
         /// <summary>
@@ -830,6 +832,12 @@ namespace LibGit2Sharp
             IList<string> paths,
             CheckoutOptions opts)
         {
+            // This is not supported in libgit2 yet.
+            if (opts.FileConflictStrategy != FileConflictStrategy.Default)
+            {
+                throw new LibGit2SharpException("Checkout does not support checking out with conflicts.");
+            }
+
             CheckoutStrategy checkoutStrategy = opts.CheckoutModifiers.HasFlag(CheckoutModifiers.Force) ?
                 CheckoutStrategy.GIT_CHECKOUT_FORCE :
                 CheckoutStrategy.GIT_CHECKOUT_SAFE;
@@ -1290,10 +1298,11 @@ namespace LibGit2Sharp
                     Version = 1
                 };
 
-            var checkoutOpts = new GitCheckoutOpts
-            {
-                version = 1
-            };
+            GitCheckoutOptsWrapper checkoutOptionsWrapper =
+                          new GitCheckoutOptsWrapper(options.CheckoutOptions,
+                                                     CheckoutStrategy.GIT_CHECKOUT_SAFE_CREATE | CheckoutStrategy.GIT_CHECKOUT_ALLOW_CONFLICTS);
+
+            var checkoutOpts = checkoutOptionsWrapper.Options;
 
             Proxy.git_merge(Handle, mergeHeads, mergeOptions, checkoutOpts);
 

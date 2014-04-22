@@ -13,8 +13,14 @@ namespace LibGit2Sharp
         /// </summary>
         public MergeOptions()
         {
+            CheckoutOptions = new CheckoutOptions();
             CommitOnSuccess = true;
         }
+
+        /// <summary>
+        /// Options controlling Checkout behavior.
+        /// </summary>
+        public CheckoutOptions CheckoutOptions { get; set; }
 
         /// <summary>
         /// Commit the merge if the merge is successful and this is a non-fast-forward merge.
