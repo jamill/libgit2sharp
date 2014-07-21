@@ -150,5 +150,115 @@ namespace LibGit2Sharp.Tests
                 Assert.Equal(SubmoduleStatus.IndexModified, statusAfter & SubmoduleStatus.IndexModified);
             }
         }
+
+        [Fact]
+        public void CanInitSubmodule()
+        {
+            var path = CloneSubmoduleUpdateTestRepo();
+            string submoduleName = "TestGitRepository";
+
+            using (var repo = new Repository(path))
+            {
+                Assert.Equal(1, repo.Submodules.Count());
+
+                var submodule = repo.Submodules[submoduleName];
+
+                Assert.NotNull(submodule);
+                Assert.True(submodule.RetrieveStatus().HasFlag(SubmoduleStatus.WorkDirUninitialized));
+
+                var configEntryBeforeInit = repo.Config.Get<string>("submodule.TestGitRepository.url");
+                Assert.Null(configEntryBeforeInit);
+
+                submodule.Init(false);
+
+                var configEntryAfterInit = repo.Config.Get<string>("submodule.TestGitRepository.url");
+                Assert.NotNull(configEntryAfterInit);
+                Assert.Equal("http://github.com/libgit2/TestGitRepository", configEntryAfterInit.Value);
+            }
+        }
+
+        [Fact]
+        public void UpdatingUninitializedSubmoduleThrows()
+        {
+            var path = CloneSubmoduleUpdateTestRepo();
+            string submoduleName = "TestGitRepository";
+
+            using (var repo = new Repository(path))
+            {
+                Assert.Equal(1, repo.Submodules.Count());
+
+                var submodule = repo.Submodules[submoduleName];
+
+                Assert.NotNull(submodule);
+                Assert.True(submodule.RetrieveStatus().HasFlag(SubmoduleStatus.WorkDirUninitialized));
+
+                Assert.Throws<LibGit2SharpException>(() => submodule.Update());
+            }
+        }
+
+        [Fact]
+        public void CanUpdateSubmodule()
+        {
+            var path = CloneSubmoduleUpdateTestRepo();
+            string submoduleName = "TestGitRepository";
+
+            using (var repo = new Repository(path))
+            {
+                Assert.Equal(1, repo.Submodules.Count());
+
+                var submodule = repo.Submodules[submoduleName];
+
+                Assert.NotNull(submodule);
+                Assert.True(submodule.RetrieveStatus().HasFlag(SubmoduleStatus.WorkDirUninitialized));
+
+                submodule.Init(false);
+                submodule.Update();
+
+                Assert.True(submodule.RetrieveStatus().HasFlag(SubmoduleStatus.InWorkDir));
+                Assert.Equal((ObjectId)"49322bb17d3acc9146f98c97d078513228bbf3c0", submodule.HeadCommitId);
+                Assert.Equal((ObjectId)"49322bb17d3acc9146f98c97d078513228bbf3c0", submodule.IndexCommitId);
+                Assert.Equal((ObjectId)"49322bb17d3acc9146f98c97d078513228bbf3c0", submodule.WorkDirCommitId);
+            }
+        }
+
+        [Fact]
+        public void CanUpdateSubmoduleAfterCheckout()
+        {
+            var path = CloneSubmoduleUpdateTestRepo();
+            string submoduleName = "TestGitRepository";
+
+            using (var repo = new Repository(path))
+            {
+                Assert.Equal(1, repo.Submodules.Count());
+
+                var submodule = repo.Submodules[submoduleName];
+
+                Assert.NotNull(submodule);
+                Assert.True(submodule.RetrieveStatus().HasFlag(SubmoduleStatus.WorkDirUninitialized));
+
+                submodule.Init(false);
+                submodule.Update();
+
+                Assert.True(submodule.RetrieveStatus().HasFlag(SubmoduleStatus.InWorkDir));
+
+                repo.Checkout("alternate");
+                Assert.True(submodule.RetrieveStatus().HasFlag(SubmoduleStatus.WorkDirModified));
+
+                submodule = repo.Submodules[submoduleName];
+
+                Assert.Equal((ObjectId)"6462e7d8024396b14d7651e2ec11e2bbf07a05c4", submodule.HeadCommitId);
+                Assert.Equal((ObjectId)"6462e7d8024396b14d7651e2ec11e2bbf07a05c4", submodule.IndexCommitId);
+                Assert.Equal((ObjectId)"49322bb17d3acc9146f98c97d078513228bbf3c0", submodule.WorkDirCommitId);
+
+                submodule.Update();
+                submodule = repo.Submodules[submoduleName];
+
+                Assert.Equal((ObjectId)"6462e7d8024396b14d7651e2ec11e2bbf07a05c4", submodule.HeadCommitId);
+                Assert.Equal((ObjectId)"6462e7d8024396b14d7651e2ec11e2bbf07a05c4", submodule.IndexCommitId);
+                Assert.Equal((ObjectId)"6462e7d8024396b14d7651e2ec11e2bbf07a05c4", submodule.WorkDirCommitId);
+            }
+        }
+
+        // TODO: Verify that we can git submodule sync
     }
 }

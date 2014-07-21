@@ -2788,6 +2788,15 @@ namespace LibGit2Sharp.Core
             }
         }
 
+        public static void git_submodule_init(SubmoduleSafeHandle submodule, bool overwrite)
+        {
+            using (ThreadAffinity())
+            {
+                var res = NativeMethods.git_submodule_init(submodule, overwrite);
+                Ensure.ZeroResult(res);
+            }
+        }
+
         #endregion
 
         #region git_tag_

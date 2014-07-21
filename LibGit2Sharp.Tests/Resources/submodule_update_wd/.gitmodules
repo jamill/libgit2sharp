@@ -1,0 +1,3 @@
+[submodule "TestGitRepository"]
+	path = TestGitRepository
+	url = http://github.com/libgit2/TestGitRepository

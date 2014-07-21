@@ -110,6 +110,56 @@ namespace LibGit2Sharp
         }
 
         /// <summary>
+        /// Initialize submodule
+        /// </summary>
+        /// <param name="overwrite"></param>
+        public virtual void Init(bool overwrite)
+        {
+            using (var handle = Proxy.git_submodule_lookup(repo.Handle, Name))
+            {
+                Proxy.git_submodule_init(handle, overwrite);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public virtual void Update()
+        {
+            string submoduleRepoPath = System.IO.Path.Combine(this.repo.Info.WorkingDirectory, this.Path);
+
+            // Get the status of the 
+            // Clone if necessary, then checkout commit
+            var submodule_status = this.RetrieveStatus();
+
+            // If submodule is not in WorkDir, but is initialized, then clone
+            if (submodule_status.HasFlag(SubmoduleStatus.WorkDirUninitialized))
+            {
+                // Verify submodule is initialized (i.e. information about the
+                // submodule exists in .git\config)
+                var configEntry = repo.Config.Get<string>(string.Format("submodule.{0}.url", this.Name));
+                
+                if (configEntry == null)
+                {
+                    var errorMessage = string.Format(CultureInfo.InvariantCulture,"Submodule {0} is not initialized.", Name);
+                    throw new LibGit2SharpException(errorMessage);
+                }
+
+                Repository.Clone(this.Url, submoduleRepoPath);
+            }
+
+            // Open repository and check it out
+            using (var repo = new Repository(submoduleRepoPath))
+            {
+                Commit commit = repo.Lookup<Commit>(this.HeadCommitId);
+
+                // TODO: Checkout progress
+                //       Proper checkout modifiers
+                repo.Checkout(commit, new CheckoutOptions() { CheckoutModifiers = CheckoutModifiers.Force});
+            }
+        }
+
+        /// <summary>
         /// Determines whether the specified <see cref="Object"/> is equal to the current <see cref="Submodule"/>.
         /// </summary>
         /// <param name="obj">The <see cref="Object"/> to compare with the current <see cref="Submodule"/>.</param>
