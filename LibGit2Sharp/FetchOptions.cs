@@ -49,5 +49,10 @@ namespace LibGit2Sharp
         /// Handler to generate <see cref="LibGit2Sharp.Credentials"/> for authentication.
         /// </summary>
         public CredentialsHandler CredentialsProvider { get; set; }
+
+        /// <summary>
+        /// Should recursively fetch submodules
+        /// </summary>
+        public bool RecurseSubmodules { get; set; }
     }
 }

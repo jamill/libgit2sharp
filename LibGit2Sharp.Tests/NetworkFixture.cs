@@ -196,6 +196,57 @@ namespace LibGit2Sharp.Tests
             }
         }
 
+        [Fact]
+        public void CanCloneSubmodulesRecursively()
+        {
+            string url = "https://github.com/jamill/SubmoduleTest.git";
+            string submoduleName = "TestGitRepository";
+
+            var scd = BuildSelfCleaningDirectory();
+            string clonedRepoPath = Repository.Clone(url, scd.DirectoryPath, new CloneOptions() { RecurseSubmodules = true });
+
+            using (var repo = new Repository(clonedRepoPath))
+            {
+                Assert.True(repo.Submodules[submoduleName].RetrieveStatus().HasFlag(SubmoduleStatus.InWorkDir));
+            }
+        }
+
+        [Fact]
+        public void CanFetchSubmodulesRecursivelyWithUninitializedSubmodules()
+        {
+            string url = "https://github.com/jamill/SubmoduleTest.git";
+
+            var scd = BuildSelfCleaningDirectory();
+            string clonedRepoPath = Repository.Clone(url, scd.DirectoryPath, new CloneOptions() { RecurseSubmodules = false });
+
+            using (var repo = new Repository(clonedRepoPath))
+            {
+                Assert.True(repo.Submodules.First().RetrieveStatus().HasFlag(SubmoduleStatus.WorkDirUninitialized));
+                repo.Fetch("origin", new FetchOptions() { RecurseSubmodules = true });
+            }
+        }
+
+        [Fact]
+        public void CanFetchSubmodulesRecursively()
+        {
+            string url = "https://github.com/jamill/SubmoduleTest.git";
+
+            var scd = BuildSelfCleaningDirectory();
+            string clonedRepoPath = Repository.Clone(url, scd.DirectoryPath, new CloneOptions() { RecurseSubmodules = false });
+
+            string submoduleName = "TestGitRepository";
+
+            using (var repo = new Repository(clonedRepoPath))
+            {
+                repo.Submodules[submoduleName].Init(false);
+                repo.Submodules[submoduleName].Update();
+
+                // TODO: Verify that we actually fetch new updates.
+                repo.Fetch("origin", new FetchOptions() { RecurseSubmodules = true });
+                Assert.True(repo.Submodules.First().RetrieveStatus().HasFlag(SubmoduleStatus.InWorkDir));
+            }
+        }
+
         /*
         * git ls-remote http://github.com/libgit2/TestGitRepository
         * 49322bb17d3acc9146f98c97d078513228bbf3c0        HEAD

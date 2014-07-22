@@ -49,6 +49,11 @@ namespace LibGit2Sharp
         /// </summary>
         public CredentialsHandler CredentialsProvider { get; set; }
 
+        /// <summary>
+        /// Should recursively clone and checkout submodules
+        /// </summary>
+        public bool RecurseSubmodules { get; set; }
+
         #region IConvertableToGitCheckoutOpts
 
         CheckoutCallbacks IConvertableToGitCheckoutOpts.GenerateCallbacks()

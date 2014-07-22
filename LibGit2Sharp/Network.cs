@@ -107,7 +107,7 @@ namespace LibGit2Sharp
             }
         }
 
-        static void DoFetch(RemoteSafeHandle remoteHandle, FetchOptions options, Signature signature, string logMessage)
+        void DoFetch(RemoteSafeHandle remoteHandle, FetchOptions options, Signature signature, string logMessage)
         {
             if (options == null)
             {
@@ -133,6 +133,20 @@ namespace LibGit2Sharp
             Proxy.git_remote_set_callbacks(remoteHandle, ref gitCallbacks);
 
             Proxy.git_remote_fetch(remoteHandle, signature, logMessage);
+
+            if (options.RecurseSubmodules)
+            {
+                foreach (var submodule in this.repository.Submodules)
+                {
+                    if (submodule.RetrieveStatus().HasFlag(SubmoduleStatus.InWorkDir))
+                    {
+                        using (var subRepo = new Repository(System.IO.Path.Combine(this.repository.Info.WorkingDirectory, submodule.Path)))
+                        {
+                            subRepo.Fetch("origin");
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>

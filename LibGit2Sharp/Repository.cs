@@ -562,6 +562,22 @@ namespace LibGit2Sharp
                     repoPath = Proxy.git_repository_path(repo);
                 }
 
+                // Do not recursively clone submodules if the repository
+                // does not have a work tree
+                // TODO: check if the repo has a worktree and it is
+                //       checked out (instead of just the IsBare setting?)
+                if (!options.IsBare && options.RecurseSubmodules)
+                {
+                    using (var repo = new Repository(repoPath.Native))
+                    {
+                        foreach (var submodule in repo.Submodules)
+                        {
+                            submodule.Init(false);
+                            submodule.Update();
+                        }
+                    }
+                }
+
                 return repoPath.Native;
             }
         }
