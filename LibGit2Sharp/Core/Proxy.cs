@@ -2770,6 +2770,15 @@ namespace LibGit2Sharp.Core
             }
         }
 
+        public static void git_submodule_sync(SubmoduleSafeHandle submodule)
+        {
+            using (ThreadAffinity())
+            {
+                var res = NativeMethods.git_submodule_sync(submodule);
+                Ensure.ZeroResult(res);
+            }
+        }
+
         public static void git_submodule_free(IntPtr submodule)
         {
             NativeMethods.git_submodule_free(submodule);
