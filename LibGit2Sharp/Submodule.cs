@@ -46,7 +46,7 @@ namespace LibGit2Sharp
             var rules = new SubmoduleLazyGroup(repo, name);
             fetchRecurseSubmodulesRule = rules.AddLazy(Proxy.git_submodule_fetch_recurse_submodules);
             ignoreRule = rules.AddLazy(Proxy.git_submodule_ignore);
-            updateRule = rules.AddLazy(Proxy.git_submodule_update);
+            updateRule = rules.AddLazy(Proxy.git_submodule_update_strategy);
         }
 
         /// <summary>
@@ -136,55 +136,7 @@ namespace LibGit2Sharp
         /// </summary>
         public virtual void Update(bool init)
         {
-            string submoduleRepoPath = System.IO.Path.Combine(this.repo.Info.WorkingDirectory, this.Path);
-
-            string remoteUrl = this.Url;
-
-            // Get the status of the submodule to determine
-            // if we need to clone it or not.
-            var submoduleStatus = this.RetrieveStatus();
-
-            // If submodule is not in WorkDir, but is initialized, then clone
-            if (submoduleStatus.HasFlag(SubmoduleStatus.WorkDirUninitialized))
-            {
-                // Verify submodule is initialized - information about the 
-                // submodule should exist in .git\config.
-                var configEntry = repo.Config.Get<string>(
-                    string.Format(CultureInfo.InvariantCulture, "submodule.{0}.url", this.Name));
-
-                if (configEntry == null)
-                {
-                    if (init)
-                    {
-                        this.Init(false);
-                    }
-                    else
-                    {
-                        throw new UninitializedSubmoduleException(
-                            string.Format(CultureInfo.InvariantCulture, "Submodule {0} is not initialized.", Name));
-                    }
-                }
-                else
-                {
-                    remoteUrl = configEntry.Value;
-                }
-
-                // Do not perform checkout as part of clone, we will checkout
-                // specific commit afterwords.
-                Repository.Clone(remoteUrl, submoduleRepoPath, new CloneOptions() { Checkout = false });
-            }
-
-            // Open the sub repository and check out specified commit.
-            using (var repo = new Repository(submoduleRepoPath))
-            {
-                Commit commit = repo.Lookup<Commit>(this.HeadCommitId);
-
-                Ensure.GitObjectIsNotNull(commit, HeadCommitId.ToString());
-
-                // TODO: Force modifier probably should not be required here,
-                //       but it is with current Checkout behavior.
-                repo.Checkout(commit, new CheckoutOptions() { CheckoutModifiers = CheckoutModifiers.Force});
-            }
+            repo.Submodules.Update(Name, new SubmoduleUpdateOptions() { Init = init });
         }
 
         /// <summary>

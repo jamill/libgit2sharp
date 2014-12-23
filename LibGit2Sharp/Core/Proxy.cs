@@ -2779,6 +2779,16 @@ namespace LibGit2Sharp.Core
             }
         }
 
+        public static void git_submodule_update(SubmoduleSafeHandle submodule, bool init, ref GitSubmoduleOptions options)
+        {
+            // Convert the submoduleUpdateOptions into the native structs
+            using (ThreadAffinity())
+            {
+                var res = NativeMethods.git_submodule_update(submodule, init, ref options);
+                Ensure.ZeroResult(res);
+            }
+        }
+
         public static void git_submodule_free(IntPtr submodule)
         {
             NativeMethods.git_submodule_free(submodule);
@@ -2814,9 +2824,9 @@ namespace LibGit2Sharp.Core
             return NativeMethods.git_submodule_ignore(submodule);
         }
 
-        public static SubmoduleUpdate git_submodule_update(SubmoduleSafeHandle submodule)
+        public static SubmoduleUpdate git_submodule_update_strategy(SubmoduleSafeHandle submodule)
         {
-            return NativeMethods.git_submodule_update(submodule);
+            return NativeMethods.git_submodule_update_strategy(submodule);
         }
 
         public static bool git_submodule_fetch_recurse_submodules(SubmoduleSafeHandle submodule)

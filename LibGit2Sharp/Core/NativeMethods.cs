@@ -35,7 +35,7 @@ namespace LibGit2Sharp.Core
                 if (res == 1)
                 {
                     // Ignore the error that this propagates. Call it in case openssl is being used.
-                    git_openssl_set_locking();
+                    // git_openssl_set_locking();
                 }
                 AddHandle();
             }
@@ -1370,6 +1370,12 @@ namespace LibGit2Sharp.Core
             RepositorySafeHandle repo,
             [MarshalAs(UnmanagedType.CustomMarshaler, MarshalCookie = UniqueId.UniqueIdentifier, MarshalTypeRef = typeof(StrictFilePathMarshaler))] FilePath name);
 
+        [DllImport(libgit2)]
+        internal static extern int git_submodule_update(
+            SubmoduleSafeHandle sm,
+            [MarshalAs(UnmanagedType.Bool)] bool init,
+            ref GitSubmoduleOptions submoduleUpdateOptions);
+
         internal delegate int submodule_callback(
             IntPtr sm,
             IntPtr name,
@@ -1425,7 +1431,7 @@ namespace LibGit2Sharp.Core
             SubmoduleSafeHandle submodule);
 
         [DllImport(libgit2)]
-        internal static extern SubmoduleUpdate git_submodule_update(
+        internal static extern SubmoduleUpdate git_submodule_update_strategy(
             SubmoduleSafeHandle submodule);
 
         [DllImport(libgit2)]
