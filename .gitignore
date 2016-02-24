@@ -11,6 +11,11 @@ Thumbs.db
 *.vspscc
 *_i.c
 *_p.c
+
+
+
+
+
 *.ncb
 *.suo
 *.sln.ide/
